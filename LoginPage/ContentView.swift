@@ -6,74 +6,103 @@
 //
 
 import SwiftUI
+import Firebase
+import FirebaseAuth
 
 struct ContentView: View {
+    @State var status = UserDefaults.standard.value(forKey: "status") as? Bool ?? false
     @State var index = 0 //Отвечает за выделенное Вью авторизации
 
     var body: some View {
-        GeometryReader { _ in
-            VStack() {
-                Image("nike")
-                .resizable()
-                .frame(width: 270, height: 170)
-
-                ZStack {
-                    SignUp(index: self.$index)
-                        .zIndex(Double(self.index))
-                    Login(index: self.$index)
-                }.offset(y: -40)
-
-                HStack(spacing: 15) {
-                    Rectangle()
-                        .fill(Color.black)
-                        .frame(height: 1)
-
-                    Text("OR")
-
-                    Rectangle()
-                        .fill(Color.black)
-                        .frame(height: 1)
-                }
-                .padding(.horizontal, 50)
-                .padding(.top, 15)
-
-                HStack(spacing: 45) {
-                    Button {
-                        //Code
-                    } label: {
-                        Image("apple")
+        ///Проверка статуса авторизации
+        VStack {
+            if status {
+                Home()
+            } else {
+                GeometryReader { _ in
+                    VStack() {
+                        Image("nike")
                             .resizable()
-                            .frame(width: 50, height: 50)
-                    }
+                            .frame(width: 270, height: 170)
 
-                    Button {
-                        //Code
-                    } label: {
-                        Image("fb")
-                            .resizable()
-                            .frame(width: 50, height: 50)
-                    }
+                        ZStack {
+                            SignUp(index: self.$index)
+                                .zIndex(Double(self.index))
+                            Login(index: self.$index)
+                        }.offset(y: -40)
 
-                    Button {
-                        //Code
-                    } label: {
-                        Image("twitter")
-                            .resizable()
-                            .frame(width: 50, height: 50)
-                    }
+                        HStack(spacing: 15) {
+                            Rectangle()
+                                .fill(Color.black)
+                                .frame(height: 1)
 
-                }
-                .padding(.top, 18)
+                            Text("OR")
+
+                            Rectangle()
+                                .fill(Color.black)
+                                .frame(height: 1)
+                        }
+                        .padding(.horizontal, 50)
+                        .padding(.top, 15)
+                        ///Logo
+                        HStack(spacing: 45) {
+                            Button {
+                                //Code
+                            } label: {
+                                Image("apple")
+                                    .resizable()
+                                    .frame(width: 50, height: 50)
+                            }
+
+                            Button {
+                                //Code
+                            } label: {
+                                Image("fb")
+                                    .resizable()
+                                    .frame(width: 50, height: 50)
+                            }
+
+                            Button {
+                                //Code
+                            } label: {
+                                Image("twitter")
+                                    .resizable()
+                                    .frame(width: 50, height: 50)
+                            }
+
+                        }
+                        .padding(.top, 18)
+                    }
+                    .padding(.vertical)
+                }.background(Color.white)
             }
-            .padding(.vertical)
-        }.background(Color.white)
-
+        }.onAppear() {
+            NotificationCenter.default.addObserver(forName: NSNotification.Name("statusChange"), object: nil, queue: .main) { _ in
+                let status = UserDefaults.standard.value(forKey: "status") as? Bool ?? false
+                self.status = status
+            }
+        }
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
+    }
+}
+
+//MARK: - Домашняя страница
+struct Home: View {
+    var body: some View {
+        VStack {
+            Text("Home").fontWeight(.bold)
+            Button {
+                UserDefaults.standard.set(false, forKey: "status")
+                NotificationCenter.default.post(name: NSNotification.Name("statusChange"), object: nil)
+            } label: {
+                Text("Logout")
+            }
+        }
     }
 }
 //MARK: - CShapes
@@ -98,10 +127,13 @@ struct CShape1: Shape {
         }
     }
 }
-//MARK: - Login View
+//MARK: - SignIn View
 struct Login: View {
     @State var email = ""
     @State var pass = ""
+    @State var message = ""
+    @State var alert = false
+    @State var showSignUp = false
     @Binding var index : Int
 
     var body: some View {
@@ -145,18 +177,21 @@ struct Login: View {
                     Divider().background(Color.white.opacity(0.5))
                 }.padding(.horizontal)
                     .padding(.top, 40)
-
+                ///Button create account
                 HStack {
                     Spacer(minLength: 0)
 
                     Button {
-                        //Code
+                        self.showSignUp.toggle()
                     } label: {
-                        Text("Forget password?")
+                        Text("Don't Have An Account?")
                             .foregroundColor(Color.white.opacity(0.6))
                     }
                 }.padding(.horizontal)
                     .padding(.top, 30)
+                    .sheet(isPresented: $showSignUp) {
+                        SignUp(index: self.$index)
+                    }
             }.padding()
                 .padding(.bottom, 65)
                 .background(Color("Color1"))
@@ -168,9 +203,19 @@ struct Login: View {
                     self.index = 0
                 }
                 .padding(.horizontal, 10)
-
+            ///Кнопка Login
             Button {
-                //Code
+                signInWithEmail(email: self.email, password: self.pass) { verified, _ in
+                    if !verified {
+                        self.message = "Такой пользователь не зарегистрирован"
+                        self.alert.toggle()
+                        self.email = ""
+                        self.pass = ""
+                    } else {
+                        UserDefaults.standard.set(true, forKey: "status")
+                        NotificationCenter.default.post(name: NSNotification.Name("statusChange"), object: nil)
+                    }
+                }
             } label: {
                 Text("Login")
                     .foregroundColor(.white)
@@ -179,10 +224,14 @@ struct Login: View {
                     .padding(.horizontal, 50)
                     .background(Color.orange)
                     .clipShape(Capsule())
-                    //.shadow(color: .white.opacity(0.1), radius: 5, x: 0, y: 5)
+                    .shadow(color: .black.opacity(0.4), radius: 5, x: 0, y: 5)
             }
             .offset(y: 24)
             .opacity(self.index == 0 ? 1 : 0)
+        }.alert(isPresented: $alert) {
+
+            Alert(title: Text("Error"), message: Text(self.message), dismissButton: .default(Text("Ok")))
+
         }
     }
 }
@@ -192,6 +241,9 @@ struct SignUp: View {
     @State var email = ""
     @State var pass = ""
     @State var repass = ""
+    @State var message = ""
+    @State var showAlert = false
+   // @Binding var showSignUp : Bool
     @Binding var index : Int
 
     var body: some View {
@@ -258,9 +310,21 @@ struct SignUp: View {
                 self.index = 1
             }
             .padding(.horizontal, 10)
-
+            ///Кнопка Sign Up
             Button {
-                //Code
+                signUpWithEmail(email: self.email, password: self.pass) { verified, status in
+                    if self.repass != self.pass {
+                        self.message = "The entered password does not match!"
+                        self.showAlert.toggle()
+                    } else if !verified {
+                        self.message = status
+                        self.showAlert.toggle()
+                    } else {
+                        UserDefaults.standard.set(true, forKey: "status")
+                       // self.showSignUp.toggle()
+                        NotificationCenter.default.post(name: NSNotification.Name("statusChange"), object: nil)
+                    }
+                }
             } label: {
                 Text("SignUp")
                     .foregroundColor(.white)
@@ -273,6 +337,34 @@ struct SignUp: View {
             }
             .offset(y: 24)
             .opacity(self.index == 1 ? 1 : 0)
+        }.alert(isPresented: $showAlert) {
+
+            Alert(title: Text("Error"), message: Text(self.message), dismissButton: .default(Text("Ok")))
+
         }
+    }
+}
+
+//MARK: - Firebase func
+///Вход в приложение
+func signInWithEmail(email: String, password: String, completion: @escaping (Bool, String) -> Void) {
+    Auth.auth().signIn(withEmail: email, password: password) { res, err in
+        if err != nil {
+            completion(false, (err?.localizedDescription)!)
+            return
+        }
+
+        completion(true, (res?.user.email)!)
+    }
+}
+///Регистрация в приложение
+func signUpWithEmail(email: String, password: String, completion: @escaping (Bool, String) -> Void) {
+    Auth.auth().createUser(withEmail: email, password: password) { res, err in
+        if err != nil {
+            completion(false, (err?.localizedDescription)!)
+            return
+        }
+
+        completion(true, (res?.user.email)!)
     }
 }
