@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import Firebase
+import FirebaseAuth
 
 struct ContentView: View {
     @State var index = 0 //Отвечает за выделенное Вью авторизации
@@ -98,7 +100,7 @@ struct CShape1: Shape {
         }
     }
 }
-//MARK: - Login View
+//MARK: - SignIn View
 struct Login: View {
     @State var email = ""
     @State var pass = ""
@@ -274,5 +276,29 @@ struct SignUp: View {
             .offset(y: 24)
             .opacity(self.index == 1 ? 1 : 0)
         }
+    }
+}
+
+//MARK: - Firebase func
+///Вход в приложение
+func signInWithEmail(email: String, password: String, completion: @escaping (Bool, String) -> Void) {
+    Auth.auth().signIn(withEmail: email, password: password) { res, err in
+        if err != nil {
+            completion(false, (err?.localizedDescription)!)
+            return
+        }
+
+        completion(true, (res?.user.email)!)
+    }
+}
+///Регистрация в приложение
+func signUpWithEmail(email: String, password: String, completion: @escaping (Bool, String) -> Void) {
+    Auth.auth().createUser(withEmail: email, password: password) { res, err in
+        if err != nil {
+            completion(false, (err?.localizedDescription)!)
+            return
+        }
+
+        completion(true, (res?.user.email)!)
     }
 }
