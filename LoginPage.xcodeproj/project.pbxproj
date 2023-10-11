@@ -67,12 +67,12 @@
 		FC75A7CF2AC6EC0200F33DA7 /* LoginPage */ = {
 			isa = PBXGroup;
 			children = (
+				FC728EB72AD6B35C0004DBE3 /* Extension + Image.swift */,
 				FC75A7D02AC6EC0200F33DA7 /* LoginPageApp.swift */,
 				FC75A7D22AC6EC0200F33DA7 /* ContentView.swift */,
 				FC728EAD2AD2EEDA0004DBE3 /* HomePage.swift */,
-				FC728EB72AD6B35C0004DBE3 /* Extension + Image.swift */,
-				FC728EB52AD6AA3E0004DBE3 /* CustomModifier.swift */,
 				FC728EB32AD68F600004DBE3 /* ContentViewModel.swift */,
+				FC728EB52AD6AA3E0004DBE3 /* CustomModifier.swift */,
 				FC75A7D42AC6EC0300F33DA7 /* Assets.xcassets */,
 				FC728EA42AD163F90004DBE3 /* GoogleService-Info.plist */,
 				FC75A7D62AC6EC0300F33DA7 /* Preview Content */,

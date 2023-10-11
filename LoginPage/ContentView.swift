@@ -91,7 +91,7 @@ struct ContentView_Previews: PreviewProvider {
     }
 }
 
-//MARK: - Домашняя страница
+//MARK: - Домашняя страница тестовая
 struct Home: View {
     var body: some View {
         VStack {
@@ -243,7 +243,6 @@ struct SignUp: View {
     @State var repass = ""
     @State var message = ""
     @State var showAlert = false
-   // @Binding var showSignUp : Bool
     @Binding var index : Int
 
     var body: some View {
