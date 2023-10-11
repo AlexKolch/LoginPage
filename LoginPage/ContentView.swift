@@ -17,7 +17,7 @@ struct ContentView: View {
         ///Проверка статуса авторизации
         VStack {
             if status {
-                Home()
+                HomePage()
             } else {
                 GeometryReader { _ in
                     VStack() {
